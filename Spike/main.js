@@ -1960,14 +1960,20 @@ function setUp(wordList){
 }
  
 words = setUp(words)
+let deleteStack = []
  
 // called once per deleted word
-function delete_text(index, wordList){
+function deleteText(index, wordList){
   wordList[index]['deleted'] = true
-  changeTimes(index, wordList)
+  changeTimesDelete(index, wordList)
 }
  
-function changeTimes(index, wordList){
+function changeTimesDelete(index, wordList){
+  // save index and initial time diff to stack
+  let initial_diff = wordList[index+1]["start_time"] - wordList[index]["start_time"]
+  let delOperation = [index, initial_diff]
+  deleteStack.push(delOperation)
+
   prev = wordList[index+1]['start_time']
   wordList[index+1]['start_time'] = wordList[index]['start_time']
  
@@ -1979,3 +1985,39 @@ function changeTimes(index, wordList){
   }
  
 }
+
+// undoes ONE delete operation
+function undoDelete(operationStack, wordList){
+  // no deletes
+  if (operationStack.length == 0){
+    return
+  }
+  let delOperation = operationStack.pop()
+  let index = delOperation[0]
+  let diff = delOperation[1]
+  let next_diff
+  
+  for (i=index; i<wordList.length-1; i++){
+    if (i < wordList.length-2){
+      next_diff = wordList[i+2]['start_time'] - wordList[i+1]['start_time']
+    }
+    wordList[i+1]['start_time'] = wordList[i]['start_time'] + diff
+    diff = next_diff
+  }
+
+  return wordList
+
+}
+
+
+start_times = words.map(({start_time}) => start_time);
+console.log(start_times.slice(120, words.length-1));
+deleteText(121, words)
+start_times = words.map(({start_time}) => start_time);
+console.log(start_times.slice(120, words.length-1));
+
+
+
+undoDelete(deleteStack, words)
+start_times = words.map(({start_time}) => start_time);
+console.log(start_times.slice(120, words.length-1))
