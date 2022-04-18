@@ -2021,3 +2021,4 @@ console.log(start_times.slice(120, words.length-1));
 undoDelete(deleteStack, words)
 start_times = words.map(({start_time}) => start_time);
 console.log(start_times.slice(120, words.length-1))
+
