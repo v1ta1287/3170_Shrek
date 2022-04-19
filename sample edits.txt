@@ -1,8 +1,5 @@
-transcript = {
-    "transcripts": [
-      {
-        "confidence": -977.0841064453125,
-        "words": [
+original data (raw json from import team): 
+ [
           {
             "word": "that",
             "start_time": 0.48,
@@ -1944,227 +1941,22 @@ transcript = {
             "duration": 4.42
           }
         ]
-      }
-    ]
-  }
-  
-
-const DURATION = 52.54 + 4.42
-
-class Chunk{
-  constructor(startTime, duration){
-      this.startTime = startTime
-      this.duration = duration
-  }
-}
-  
-const preProcess = (wordList, duration) => {
-    for (i = 0; i < wordList.length - 1; i++){
-        wordList[i]['duration'] = wordList[i+1]['start_time'] - wordList[i]['start_time']
-        wordList[i]['deleted'] = false
-    }
-    wordList[wordList.length - 1]['duration'] = duration - wordList[wordList.length - 1]['start_time']
-    wordList[wordList.length - 1]['deleted'] = false
-}
-
-const deleteWord = (wordList, index) => {
-    wordList[index]['deleted'] = true
-}
-
-const shiftDelete = (wordList, index1, index2) => {
-  while(true){
-    if (wordList[index1]['deleted']){
-      index1 += 1
-      index2 += 1
-    }
-    else{
-      return index1, index2
-    }
-  }
-}
-
-const rearrange = (wordList, index1, index2) => {
-
-  index1, index2 = shiftDelete(wordList, index1, index2)
-  index2, index1 = shiftDelete(wordList, index2, index1)
-
-    temp = wordList[index1] 
-    wordList[index1] = wordList[index2]
-    wordList[index2] = temp
-}
-
-const removeDeleted = (wordList) =>{
-    let i = 0
-    while (i < wordList.length){
-        if (wordList[i]['deleted']){
-            wordList.splice(i, 1)
-        }
-        else{
-          i += 1
-        }
-    }
-    return wordList
-}
 
 
-const postProcess = (wordList) => {
 
+AFTER DELETE OPERATIONS:
 
-    wordList = removeDeleted(wordList)
-
-    let res = []
-    let current_start_time = -1
-    let current_duration = 0
-    for (i = 0; i < wordList.length - 1; i++){
-
-        if (current_start_time == -1){
-            current_start_time = wordList[i]['start_time']
-            current_duration = wordList[i]['duration']
-        }
-
-        if (wordList[i]['start_time']+wordList[i]['duration'] == wordList[i+1]['start_time']){
-            current_duration += wordList[i+1]['duration']
-        }
-        else {
-            res.push(new Chunk(current_start_time,current_duration))
-            current_start_time = -1 
-            current_duration = 0 
-        } 
-
-    }
-    if (res.length == 0){
-        current_start_time = (wordList[0]['start_time'])
-        res.push(new Chunk(current_start_time,current_duration))
-    }
-    else if (current_start_time == -1){
-        current_start_time = (wordList[wordList.length - 1]['start_time'])
-        current_duration = (wordList[wordList.length - 1]['duration'])
-        res.push(new Chunk(current_start_time,current_duration))
-    }
-    else{
-        res.push(new Chunk(current_start_time,current_duration))
-    }
-
-    return res
-
-}
-
-testList = [
-      {
-        "word": "will",
-        "start_time": 50.02,
-        "duration": 0.24
-      },
-      {
-        "word": "come",
-        "start_time": 50.32,
-        "duration": 0.12
-      },
-      {
-        "word": "out",
-        "start_time": 50.52,
-        "duration": 0.16
-      },
-      {
-        "word": "michael",
-        "start_time": 50.72,
-        "duration": 0.3
-      },
-      {
-        "word": "sometimes",
-        "start_time": 51.08,
-        "duration": 0.64
-      },
-      {
-        "word": "in",
-        "start_time": 51.78,
-        "duration": 0.06
-      },
-      {
-        "word": "the",
-        "start_time": 51.88,
-        "duration": 0.5
-      },
-      {
-        "word": "concert",
-        "start_time": 52.54,
-        "duration": 4.42
-      }
+------------------------
+User action: delete first 50 words
+Shrek gives Farquaad: [ Chunk { startTime: 15.58, duration: 41.38 } ]
+------------------------
+User action: delete last 50 words
+Shrek gives Farquaad: [ Chunk { startTime: 0.48, duration: 26.46 } ]
+56.96
+------------------------
+User action: delete words 10-50
+Shrek gives Farquaad: 
+[
+  Chunk { startTime: 0.48, duration: 2.68 },
+  Chunk { startTime: 15.96, duration: 41 }
 ]
-
-// preProcess(testList, DURATION)
-
-// deleteWord(testList, 0)
-// rearrange(testList, 0, 1)
-
-// //2 , 1 , 3-7
-// console.log(postProcess(testList))
-
-// // rearrange 2 inside stuff
-// // rearrange start/end
-
-// // rearrange(testList, 0, 3)
-// // console.log(testList)
-// // console.log(postProcess(testList))
-
-
-// FOR EXPORT TEAM:
-
-let forEditing = [...transcript['transcripts'][0]['words']]
-preProcess(forEditing, DURATION)
-console.log("edits performed on data: ")
-console.log(forEditing)
-
-// delete stuff: start, end, stuff inside
-
-// delete start chunk
-forEditing = [...transcript['transcripts'][0]['words']]
-preProcess(forEditing, DURATION)
-for (i=0; i<50; i++){
-  deleteWord(forEditing, i)
-}
-console.log("------------------------")
-console.log("delete first 50 words")
-console.log(postProcess(forEditing))
-
-// delete end chunk
-forEditing = [...transcript['transcripts'][0]['words']]
-preProcess(forEditing, DURATION)
-for (i=forEditing.length-1; i>=forEditing.length-50; i--){
-  deleteWord(forEditing, i)
-}
-console.log("------------------------")
-console.log("delete last 50 words")
-console.log(postProcess(forEditing))
-
-// // delete middle chunk
-forEditing = [...transcript['transcripts'][0]['words']]
-preProcess(forEditing, DURATION)
-console.log(DURATION)
-for (i=10; i<=50; i++){
-  deleteWord(forEditing, i)
-}
-console.log("------------------------")
-console.log("delete words 10-50")
-console.log(postProcess(forEditing))
-
-
-// rearrange stuff: start, end, stuff inside
-console.log("------------------------")
-forEditing = [...transcript['transcripts'][0]['words']]
-preProcess(forEditing, DURATION)
-
-// testing different cases
-rearrange(forEditing, 50, 90)
-rearrange(forEditing, 30, 10)
-rearrange(forEditing, 50, 73) // swapping a word which has already been swapped
-rearrange(forEditing, 0, 80) // edge case: first word
-rearrange(forEditing, 50, forEditing.length-1) // edge case: last word
-rearrange(forEditing, forEditing.length-1, 1) 
-rearrange(forEditing, 0, forEditing.length-1) // swapping back to original
-
-console.log("rearranges")
-console.log(postProcess(forEditing))
-
-// delete and rearrange
-
